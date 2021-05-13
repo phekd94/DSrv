@@ -5,10 +5,8 @@
 /*
 DESCRITION: class for storing data
 TODO:
- * setData(): add parameter
  * move constructor
  * copy constructor and override an assignment operator
- * tests
  * mutex test
 FIXME:
 DANGER:
@@ -57,7 +55,7 @@ public:
 	// Storage_2_buffers(Storage_2_buffers && obj);
 
 	// Sets data in the storage
-	int32_t setData(Data_set data, const bool add) noexcept;
+	int32_t setData(Data_set data) noexcept;
 
 	// Gets complete data from the storage
 	int32_t getData(Data_get & data) noexcept;

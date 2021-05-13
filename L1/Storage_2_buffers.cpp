@@ -74,7 +74,7 @@ Storage_2_buffers::Storage_2_buffers(Storage_2_buffers && obj)
 */
 
 //-------------------------------------------------------------------------------------------------
-int32_t Storage_2_buffers::setData(Data_set data, const bool add) noexcept
+int32_t Storage_2_buffers::setData(Data_set data) noexcept
 {
 	// Check the incoming parameter
 	if (nullptr == data.first)
@@ -101,13 +101,11 @@ int32_t Storage_2_buffers::setData(Data_set data, const bool add) noexcept
 	}
 
 	// Check the size of the input data
-	if (   (true == add && m_fillingIndex + data.second > m_dataSize)
-	    || (false == add && data.second > m_dataSize))
+	if (m_fillingIndex + data.second > m_dataSize)
 	{
-		PRINT_ERR("Size of the data is too much (size = %lu, fillingIndex = %lu, add = %s)",
+		PRINT_ERR("Size of the data is too much (size = %lu, fillingIndex = %lu",
 		          static_cast<unsigned long>(data.second),
-		          static_cast<unsigned long>(m_fillingIndex),
-		          true == add ? "true" : "false");
+		          static_cast<unsigned long>(m_fillingIndex));
 		return -1;
 	}
 

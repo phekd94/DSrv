@@ -20,9 +20,9 @@ int32_t Storage_2_buffers_test::pNull(Storage_2_buffers & obj) noexcept
 	Storage_2_buffers::Data_get dataGet;
 
 	// Test all methods which utilize input pointers
-	if (obj.setData(dataNull, true) == 0)
+	if (obj.setData(dataNull) == 0)
 	{
-		PRINT_ERR("setData(nullptr, ...)");
+		PRINT_ERR("setData(dataNull)");
 		return -1;
 	}
 
@@ -32,7 +32,7 @@ int32_t Storage_2_buffers_test::pNull(Storage_2_buffers & obj) noexcept
 	std::swap(m_completeData, obj.m_completeData);
 	std::swap(m_fillingData, obj.m_fillingData);
 
-	if (obj.setData(dataSet, true) == 0)
+	if (obj.setData(dataSet) == 0)
 	{
 		PRINT_ERR("setData() with nullptr == m_...Data");
 		return -1;
@@ -66,9 +66,9 @@ int32_t Storage_2_buffers_test::data(Storage_2_buffers & obj) noexcept
 	Storage_2_buffers::Data_set dataSet_maxP1(data_2, maxSize + 1);
 
 	// Get if data is not complete
-	if (obj.setData(dataSet_1, false) != 0)
+	if (obj.setData(dataSet_1) != 0)
 	{
-		PRINT_ERR("setData(data_1, ...)");
+		PRINT_ERR("setData(data_1)");
 		return -1;
 	}
 	if (obj.getData(dataGet) != 0)
@@ -104,14 +104,14 @@ int32_t Storage_2_buffers_test::data(Storage_2_buffers & obj) noexcept
 	}
 
 	// Two setData
-	if (obj.setData(dataSet_1, false) != 0)
+	if (obj.setData(dataSet_1) != 0)
 	{
-		PRINT_ERR("setData(data_2, ...)");
+		PRINT_ERR("setData(data_2)");
 		return -1;
 	}
-	if (obj.setData(dataSet_2, true) != 0)
+	if (obj.setData(dataSet_2) != 0)
 	{
-		PRINT_ERR("setData(data_1, ...)");
+		PRINT_ERR("setData(data_1)");
 		return -1;
 	}
 	if (obj.completeData() != 0)
@@ -134,21 +134,21 @@ int32_t Storage_2_buffers_test::data(Storage_2_buffers & obj) noexcept
 	}
 
 	// maxSize + 1 (new data)
-	if (obj.setData(dataSet_maxP1, false) == 0)
+	if (obj.setData(dataSet_maxP1) == 0)
 	{
-		PRINT_ERR("setData(dataSet_maxP1, false)");
+		PRINT_ERR("setData(dataSet_maxP1)");
 		return -1;
 	}
 
 	// maxSize (add data)
-	if (obj.setData(dataSet_1, true) != 0)
+	if (obj.setData(dataSet_1) != 0)
 	{
-		PRINT_ERR("setData(dataSet_1, ...)");
+		PRINT_ERR("setData(dataSet_1)");
 		return -1;
 	}
-	if (obj.setData(dataSet_max, true) == 0)
+	if (obj.setData(dataSet_max) == 0)
 	{
-		PRINT_ERR("setData(dataSet_max, true)");
+		PRINT_ERR("setData(dataSet_max)");
 		return -1;
 	}
 
@@ -212,9 +212,9 @@ int32_t Storage_2_buffers_test::crc(Storage_2_buffers & obj) noexcept
 	uint8_t data[1] = {1};
 	uint32_t size = 1;
 
-	if (obj.setData(Storage_2_buffers::Data_set(data, size), false) != 0)
+	if (obj.setData(Storage_2_buffers::Data_set(data, size)) != 0)
 	{
-		PRINT_ERR("setData(data_1, ...)");
+		PRINT_ERR("setData(data_1)");
 		return -1;
 	}
 	if (obj.completeData() != 0)
