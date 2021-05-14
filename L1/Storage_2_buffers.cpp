@@ -12,17 +12,26 @@
 using namespace DSrv;
 
 //-------------------------------------------------------------------------------------------------
+Storage_2_buffers::Streambuf::Streambuf(Storage_2_buffers::Streambuf && obj)
+{
+	// Set pointer from moving object
+	setPointers(obj.eback(), obj.gptr(), obj.egptr());
+
+	PRINT_DBG(true, "Streambuf move constructor");
+}
+
+//-------------------------------------------------------------------------------------------------
 Storage_2_buffers::Storage_2_buffers(uint32_t size) 
 	: m_istream(&m_streambuf), m_dataSize(size)
 {
-	// Allocate a memory for the data
-	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize]);
+	// Allocate a memory for the data (+ 1 for element for end pointer position of the Streambuf)
+	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
 	if (nullptr == m_completeData.get())
 	{
 		PRINT_ERR("Can not allocate a memory (m_completeData)");
 		return;
 	}
-	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize]);
+	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
 	if (nullptr == m_fillingData.get())
 	{
 		PRINT_ERR("Can not allocate a memory (m_fillingData)");
@@ -44,34 +53,18 @@ Storage_2_buffers::~Storage_2_buffers()
 }
 
 //-------------------------------------------------------------------------------------------------
-/*
-Storage_2_buffers::Storage_2_buffers(Storage_2_buffers && obj)
+Storage_2_buffers::Storage_2_buffers(Storage_2_buffers && obj) 
+	: m_streambuf(std::move(obj.m_streambuf)), 
+	  m_istream(&m_streambuf), 
+	  m_completeData(std::move(obj.m_completeData)),
+	  m_fillingData(std::move(obj.m_fillingData)),
+	  m_dataSize(obj.m_dataSize),
+	  m_fillingIndex(obj.m_fillingIndex),
+	  m_completeSize(obj.m_completeSize),
+	  m_debug(obj.m_debug)
 {
-	// Lock a mutex
-	try {
-		std::lock_guard<std::mutex> lock(m_mutex);
-		std::lock_guard<std::mutex> lock_obj(obj.m_mutex);
-	}
-	catch (std::system_error & obj)
-	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
-		return;
-	}
-
-	// Copy all fields
-	m_completeData = obj.m_completeData;
-	obj.m_completeData = nullptr;
-
-	m_fillingData = obj.m_fillingData;
-	obj.m_fillingData = nullptr;
-
-	m_fillingIndex = obj.m_fillingIndex;
-	m_completeSize = obj.m_completeSize;
-	m_debug = obj.m_debug;
-
 	PRINT_DBG(m_debug, "Move constructor");
 }
-*/
 
 //-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers::setData(Data_set data) noexcept
@@ -103,7 +96,7 @@ int32_t Storage_2_buffers::setData(Data_set data) noexcept
 	// Check the size of the input data
 	if (m_fillingIndex + data.second > m_dataSize)
 	{
-		PRINT_ERR("Size of the data is too much (size = %lu, fillingIndex = %lu",
+		PRINT_ERR("Size of the data is too much (size = %lu, fillingIndex = %lu)",
 		          static_cast<unsigned long>(data.second),
 		          static_cast<unsigned long>(m_fillingIndex));
 		return -1;

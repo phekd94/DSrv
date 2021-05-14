@@ -176,35 +176,46 @@ int32_t Storage_2_buffers_test::data(Storage_2_buffers & obj) noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
-/*
 int32_t Storage_2_buffers_test::move() noexcept
 {
-	Storage_2_buffers obj_1;
+	uint8_t data[] {1};
+	Storage_2_buffers::Data_set dataSet(data, 1);
+	Storage_2_buffers::Data_get dataGet;
 
-	// Save values of pointers
-	const auto m_completeData {obj_1.m_completeData};
-	const auto m_fillingData {obj_1.m_fillingData};
-
-	// Apply move constructor
-	Storage_2_buffers obj_2 {std::move(obj_1)};
-
-	// Check obj_1 pointers
-	if (obj_1.m_completeData != nullptr || obj_1.m_fillingData != nullptr)
+	Storage_2_buffers obj_1(maxSize);
+	
+	// Set data
+	if (obj_1.setData(dataSet) != 0)
 	{
-		PRINT_ERR("m_completeData or m_fillingData of obj_1 is not equal nullptr");
+		PRINT_ERR("setData(dataSet)");
 		return -1;
 	}
 
-	// Check obj_2 pointers
-	if (obj_2.m_completeData != m_completeData || obj_2.m_fillingData != m_fillingData)
+	// Apply move constructor
+	Storage_2_buffers obj_2 {std::move(obj_1)};
+	
+	// Check the data
+	if (obj_2.completeData() != 0)
 	{
-		PRINT_ERR("m_completeData or m_fillingData of obj_1 is not equal saved pointers");
+		PRINT_ERR("completeData()");
 		return -1;
+	}
+	if (obj_2.getData(dataGet) != 0)
+	{
+		PRINT_ERR("getData()");
+		return -1;
+	}
+	else
+	{
+		if (dataGet.second != 1 || dataGet.first[0] != data[0])
+		{
+			PRINT_ERR("Data is not correct");
+			return -1;
+		}
 	}
 
 	return 0;
 }
-*/
 
 //-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers_test::crc(Storage_2_buffers & obj) noexcept
@@ -267,14 +278,12 @@ int32_t Storage_2_buffers_test::fullTest() noexcept
 		PRINT_ERR("crc");
 		return -1;
 	}
-
-	/*
+	
 	if (move() != 0)
 	{
 		PRINT_ERR("move");
 		return -1;
 	}
-	*/
 
 	PRINT_DBG(true, "Test was successful");
 	return 0;

@@ -5,7 +5,6 @@
 /*
 DESCRITION: test class for Storage_2_buffers class
 TODO:
- * test for move constructor
  * test for mutex
 FIXME:
 DANGER:
@@ -34,7 +33,7 @@ public:
 	static int32_t data(Storage_2_buffers & obj) noexcept;
 
 	// Tests a move constructor
-	// static int32_t move() noexcept;
+	static int32_t move() noexcept;
 	
 	// Test a CRC
 	static int32_t crc(Storage_2_buffers & obj) noexcept;

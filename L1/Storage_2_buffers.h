@@ -5,22 +5,21 @@
 /*
 DESCRITION: class for storing data
 TODO:
- * move constructor
  * copy constructor and override an assignment operator
  * mutex test
 FIXME:
 DANGER:
 NOTE:
 
-Thread safety: yes
-Reentrance: yes, but take into account that only two buffers are available
+Thread safety: YES, but NO for the move constructor
+Reentrance: YES, but take into account that only two buffers are available
 */
 
 //-------------------------------------------------------------------------------------------------
 #include <cstdint>        // integer types
 #include <mutex>          // std::mutex, std::lock_guard
 #include <utility>        // std::pair
-#include <streambuf>      // std::basic_streambuf
+#include <streambuf>      // std::streambuf
 #include <istream>        // std::basic_istream
 #include <memory>         // std::unique_ptr
 #include "boost/crc.hpp"  // Boost.CRC library
@@ -52,7 +51,7 @@ public:
 	Storage_2_buffers & operator=(const Storage_2_buffers &) = delete;
 
 	// Move constructor
-	// Storage_2_buffers(Storage_2_buffers && obj);
+	Storage_2_buffers(Storage_2_buffers && obj);
 
 	// Sets data in the storage
 	int32_t setData(Data_set data) noexcept;
@@ -89,9 +88,21 @@ private:
 	// Buffer class
 	class Streambuf : public std::streambuf
 	{
+	
 	public:
+		
+		// Default constructor
+		Streambuf() = default;
+	
+		// Move constructor
+		Streambuf(Streambuf && obj);
+		
+		// Sets the pointers 
 		void setPointers(char * begin, char * curr, char * end)
-		{ setg(begin, curr, end); }
+		{
+			setg(begin, curr, end);
+		}
+		
 	} m_streambuf;
 	
 	// Input stream
