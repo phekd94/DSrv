@@ -35,6 +35,9 @@ public:
 	// Tests a move constructor
 	static int32_t move() noexcept;
 	
+	// Tests a copy constructor
+	static int32_t copy() noexcept;
+	
 	// Test a CRC
 	static int32_t crc(Storage_2_buffers & obj) noexcept;
 

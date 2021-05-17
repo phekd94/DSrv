@@ -10,11 +10,13 @@
 using namespace DSrv;
 
 //-------------------------------------------------------------------------------------------------
-const uint32_t maxSize = 2000;
+const uint32_t maxSize {2000};
 
 //-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers_test::pNull(Storage_2_buffers & obj) noexcept
 {
+	PRINT_DBG(true, "------ pNull ------");
+
 	Storage_2_buffers::Data_set dataNull(nullptr, 0);
 	Storage_2_buffers::Data_set dataSet;
 	Storage_2_buffers::Data_get dataGet;
@@ -57,6 +59,8 @@ int32_t Storage_2_buffers_test::pNull(Storage_2_buffers & obj) noexcept
 //-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers_test::data(Storage_2_buffers & obj) noexcept
 {
+	PRINT_DBG(true, "------ data ------");
+
 	uint8_t data_1[] {1};
 	uint8_t data_2[] {2};
 	Storage_2_buffers::Data_set dataSet_1(data_1, 1);
@@ -178,11 +182,13 @@ int32_t Storage_2_buffers_test::data(Storage_2_buffers & obj) noexcept
 //-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers_test::move() noexcept
 {
+	PRINT_DBG(true, "------ move ------");
+
 	uint8_t data[] {1};
 	Storage_2_buffers::Data_set dataSet(data, 1);
 	Storage_2_buffers::Data_get dataGet;
 
-	Storage_2_buffers obj_1(maxSize);
+	Storage_2_buffers obj_1 {maxSize};
 	
 	// Set data
 	if (obj_1.setData(dataSet) != 0)
@@ -218,8 +224,82 @@ int32_t Storage_2_buffers_test::move() noexcept
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t Storage_2_buffers_test::copy() noexcept
+{
+	PRINT_DBG(true, "------ copy ------");
+
+	uint8_t data[] {1, 9, 3};
+	Storage_2_buffers::Data_set dataSet(data, 3);
+	Storage_2_buffers::Data_get dataGet;
+
+	Storage_2_buffers obj_1 {maxSize};
+	
+	// Set data
+	if (obj_1.setData(dataSet) != 0)
+	{
+		PRINT_ERR("setData(dataSet)");
+		return -1;
+	}
+	
+	{
+		// Apply copy constructor
+		Storage_2_buffers obj_2 {obj_1};
+		
+		// Check the data
+		if (obj_2.completeData() != 0)
+		{
+			PRINT_ERR("obj_2.completeData()");
+			return -1;
+		}
+		if (obj_2.getData(dataGet) != 0)
+		{
+			PRINT_ERR("obj_2.getData()");
+			return -1;
+		}
+		else
+		{
+			if (   dataGet.second != 3 
+			    || dataGet.first[0] != data[0]
+			    || dataGet.first[1] != data[1]
+			    || dataGet.first[2] != data[2])
+			{
+				PRINT_ERR("Data in the obj_2 is not correct");
+				return -1;
+			}
+		}
+	}
+	
+	// Check the data
+	if (obj_1.completeData() != 0)
+	{
+		PRINT_ERR("obj_1.completeData()");
+		return -1;
+	}
+	if (obj_1.getData(dataGet) != 0)
+	{
+		PRINT_ERR("obj_1.getData()");
+		return -1;
+	}
+	else
+	{
+		if (   dataGet.second != 3 
+		    || dataGet.first[0] != data[0]
+		    || dataGet.first[1] != data[1]
+		    || dataGet.first[2] != data[2])
+		{
+			PRINT_ERR("Data in the obj_2 is not correct");
+			return -1;
+		}
+	}
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers_test::crc(Storage_2_buffers & obj) noexcept
 {
+	PRINT_DBG(true, "------ crc ------");
+
 	uint8_t data[1] = {1};
 	uint32_t size = 1;
 
@@ -258,6 +338,8 @@ int32_t Storage_2_buffers_test::crc(Storage_2_buffers & obj) noexcept
 //-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers_test::fullTest() noexcept
 {
+	PRINT_DBG(true, "====== fullTest ======");
+
 	Storage_2_buffers obj(maxSize);
 	obj.setDebug(true);
 
@@ -282,6 +364,12 @@ int32_t Storage_2_buffers_test::fullTest() noexcept
 	if (move() != 0)
 	{
 		PRINT_ERR("move");
+		return -1;
+	}
+	
+	if (copy() != 0)
+	{
+		PRINT_ERR("copy");
 		return -1;
 	}
 

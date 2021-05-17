@@ -5,6 +5,7 @@
 #include <utility>       // std::swap
 #include <system_error>  // std::system_error
 #include <utility>       // std::move
+#include <algorithm>     // std::copy
 
 #include "DSrv/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
 
@@ -17,7 +18,7 @@ Storage_2_buffers::Streambuf::Streambuf(Storage_2_buffers::Streambuf && obj)
 	// Set pointer from moving object
 	setPointers(obj.eback(), obj.gptr(), obj.egptr());
 
-	PRINT_DBG(true, "Streambuf move constructor");
+	PRINT_DBG(true, "Move constructor");
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -53,6 +54,42 @@ Storage_2_buffers::~Storage_2_buffers()
 }
 
 //-------------------------------------------------------------------------------------------------
+Storage_2_buffers::Storage_2_buffers(const Storage_2_buffers & obj)
+	: m_istream(&m_streambuf),
+	  m_dataSize(obj.m_dataSize),
+	  m_fillingIndex(obj.m_fillingIndex),
+	  m_completeSize(obj.m_completeSize),
+	  m_debug(obj.m_debug)
+{
+	// Allocate a memory for the data (+ 1 for element for end pointer position of the Streambuf)
+	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
+	if (nullptr == m_completeData.get())
+	{
+		PRINT_ERR("Can not allocate a memory (m_completeData)");
+		return;
+	}
+	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
+	if (nullptr == m_fillingData.get())
+	{
+		PRINT_ERR("Can not allocate a memory (m_fillingData)");
+		return;
+	}
+	
+	// Copy data (+ 1 for last element)
+	std::copy(obj.m_completeData.get(), obj.m_completeData.get() + m_dataSize + 1, 
+	          m_completeData.get());
+	std::copy(obj.m_fillingData.get(), obj.m_fillingData.get() + m_dataSize + 1, 
+	          m_fillingData.get());
+	
+	// Set pointers to the input buffer
+	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get() + m_fillingIndex));
+	
+	PRINT_DBG(m_debug, "Copy constructor");
+}
+
+//-------------------------------------------------------------------------------------------------
 Storage_2_buffers::Storage_2_buffers(Storage_2_buffers && obj) 
 	: m_streambuf(std::move(obj.m_streambuf)), 
 	  m_istream(&m_streambuf), 
@@ -85,7 +122,7 @@ int32_t Storage_2_buffers::setData(Data_set data) noexcept
 
 	// Lock a mutex
 	try {
-		std::lock_guard<std::mutex> lock(m_mutex);
+		std::lock_guard<std::mutex> lock {m_mutex};
 	}
 	catch (std::system_error & obj)
 	{
@@ -134,7 +171,7 @@ int32_t Storage_2_buffers::getData(Data_get & data) noexcept
 
 	// Lock a mutex
 	try {
-		std::lock_guard<std::mutex> lock(m_mutex);
+		std::lock_guard<std::mutex> lock {m_mutex};
 	}
 	catch (std::system_error & obj)
 	{
@@ -158,7 +195,7 @@ int32_t Storage_2_buffers::clearData() noexcept
 {
 	// Lock a mutex
 	try {
-		std::lock_guard<std::mutex> lock(m_mutex);
+		std::lock_guard<std::mutex> lock {m_mutex};
 	}
 	catch (std::system_error & obj)
 	{
@@ -192,7 +229,7 @@ int32_t Storage_2_buffers::completeData() noexcept
 
 	// Lock a mutex
 	try {
-		std::lock_guard<std::mutex> lock(m_mutex);
+		std::lock_guard<std::mutex> lock {m_mutex};
 	}
 	catch (std::system_error & obj)
 	{

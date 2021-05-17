@@ -5,7 +5,7 @@
 /*
 DESCRITION: class for storing data
 TODO:
- * copy constructor and override an assignment operator
+ * override an assignment operator
  * mutex test
 FIXME:
 DANGER:
@@ -47,8 +47,10 @@ public:
 
 	// Without copy constructor and override an assignment operator
 	// (due to class members as pointer are presented)
-	Storage_2_buffers(const Storage_2_buffers &) = delete;
 	Storage_2_buffers & operator=(const Storage_2_buffers &) = delete;
+	
+	// Copy constructor
+	Storage_2_buffers(const Storage_2_buffers & obj);
 
 	// Move constructor
 	Storage_2_buffers(Storage_2_buffers && obj);
