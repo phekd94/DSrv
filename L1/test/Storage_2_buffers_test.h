@@ -38,6 +38,9 @@ public:
 	// Tests a copy constructor
 	static int32_t copy() noexcept;
 	
+	// Tests an operator=
+	static int32_t opEqual() noexcept;
+	
 	// Test a CRC
 	static int32_t crc(Storage_2_buffers & obj) noexcept;
 

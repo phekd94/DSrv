@@ -5,7 +5,6 @@
 /*
 DESCRITION: class for storing data
 TODO:
- * override an assignment operator
  * mutex test
 FIXME:
 DANGER:
@@ -44,16 +43,15 @@ public:
 
 	explicit Storage_2_buffers(uint32_t size);
 	virtual ~Storage_2_buffers();
-
-	// Without copy constructor and override an assignment operator
-	// (due to class members as pointer are presented)
-	Storage_2_buffers & operator=(const Storage_2_buffers &) = delete;
 	
 	// Copy constructor
 	Storage_2_buffers(const Storage_2_buffers & obj);
 
 	// Move constructor
 	Storage_2_buffers(Storage_2_buffers && obj);
+	
+	// Override an assignment operator
+	Storage_2_buffers & operator=(const Storage_2_buffers & obj);
 
 	// Sets data in the storage
 	int32_t setData(Data_set data) noexcept;

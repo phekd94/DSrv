@@ -237,7 +237,7 @@ int32_t Storage_2_buffers_test::copy() noexcept
 	// Set data
 	if (obj_1.setData(dataSet) != 0)
 	{
-		PRINT_ERR("setData(dataSet)");
+		PRINT_ERR("obj_1.setData(dataSet)");
 		return -1;
 	}
 	
@@ -286,6 +286,62 @@ int32_t Storage_2_buffers_test::copy() noexcept
 		    || dataGet.first[0] != data[0]
 		    || dataGet.first[1] != data[1]
 		    || dataGet.first[2] != data[2])
+		{
+			PRINT_ERR("Data in the obj_1 is not correct");
+			return -1;
+		}
+	}
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t Storage_2_buffers_test::opEqual() noexcept
+{
+	PRINT_DBG(true, "------ opEqual ------");
+
+	uint8_t data_1[] {1, 9, 3};
+	uint8_t data_2[] {1, 8};
+	Storage_2_buffers::Data_set dataSet_1(data_1, 3);
+	Storage_2_buffers::Data_set dataSet_2(data_2, 2);
+	Storage_2_buffers::Data_get dataGet;
+
+	Storage_2_buffers obj_1 {3};
+	Storage_2_buffers obj_2 {2};
+	
+	// Set data
+	if (obj_1.setData(dataSet_1) != 0)
+	{
+		PRINT_ERR("obj_1.setData(dataSet_1)");
+		return -1;
+	}
+	if (obj_2.setData(dataSet_2) != 0)
+	{
+		PRINT_ERR("obj_2.setData(dataSet_2)");
+		return -1;
+	}
+	
+	// Apply operator=
+	obj_1 = obj_1;
+	obj_2 = obj_1;
+	
+	// Check the data
+	if (obj_2.completeData() != 0)
+	{
+		PRINT_ERR("obj_2.completeData()");
+		return -1;
+	}
+	if (obj_2.getData(dataGet) != 0)
+	{
+		PRINT_ERR("obj_2.getData()");
+		return -1;
+	}
+	else
+	{
+		if (   dataGet.second != 3 
+		    || dataGet.first[0] != data_1[0]
+		    || dataGet.first[1] != data_1[1]
+		    || dataGet.first[2] != data_1[2])
 		{
 			PRINT_ERR("Data in the obj_2 is not correct");
 			return -1;
@@ -372,7 +428,13 @@ int32_t Storage_2_buffers_test::fullTest() noexcept
 		PRINT_ERR("copy");
 		return -1;
 	}
+	
+	if (opEqual() != 0)
+	{
+		PRINT_ERR("copy");
+		return -1;
+	}
 
-	PRINT_DBG(true, "Test was successful");
+	PRINT_DBG(true, "====== Test was successful ======");
 	return 0;
 }
