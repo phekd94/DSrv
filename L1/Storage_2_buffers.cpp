@@ -22,7 +22,7 @@ Storage_2_buffers::Streambuf::Streambuf(Storage_2_buffers::Streambuf && obj)
 }
 
 //-------------------------------------------------------------------------------------------------
-Storage_2_buffers::Storage_2_buffers(uint32_t size) 
+Storage_2_buffers::Storage_2_buffers(const uint32_t size) 
 	: m_istream(&m_streambuf), m_dataSize(size)
 {
 	// Allocate a memory for the data (+ 1 for element for end pointer position of the Streambuf)

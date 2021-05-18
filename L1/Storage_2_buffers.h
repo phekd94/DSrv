@@ -41,7 +41,10 @@ public:
 	// Data type for get method (pointer + size)
 	typedef  std::pair<const uint8_t *, uint32_t>  Data_get;
 
-	explicit Storage_2_buffers(uint32_t size);
+	// Constructor
+	explicit Storage_2_buffers(const uint32_t size);
+	
+	// Destructor
 	virtual ~Storage_2_buffers();
 	
 	// Copy constructor
