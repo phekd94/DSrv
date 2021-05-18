@@ -3,7 +3,7 @@
 
 //-------------------------------------------------------------------------------------------------
 /*
-DESCRITION: test class for Storage_2_buffers class
+DESCRITION: test class for L1/Storage_2_buffers class
 TODO:
  * test for mutex
 FIXME:
@@ -21,6 +21,7 @@ namespace DSrv
 //-------------------------------------------------------------------------------------------------
 class Storage_2_buffers_test
 {
+
 public:
 
 	// Only via public static methods
