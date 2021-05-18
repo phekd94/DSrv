@@ -22,28 +22,8 @@ Storage_2_buffers::Streambuf::Streambuf(Storage_2_buffers::Streambuf && obj)
 }
 
 //-------------------------------------------------------------------------------------------------
-Storage_2_buffers::Storage_2_buffers(const uint32_t size) 
-	: m_istream(&m_streambuf), m_dataSize(size)
+Storage_2_buffers::Storage_2_buffers() : m_istream(&m_streambuf)
 {
-	// Allocate a memory for the data (+ 1 for element for end pointer position of the Streambuf)
-	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
-	if (nullptr == m_completeData.get())
-	{
-		PRINT_ERR("Can not allocate a memory (m_completeData)");
-		return;
-	}
-	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
-	if (nullptr == m_fillingData.get())
-	{
-		PRINT_ERR("Can not allocate a memory (m_fillingData)");
-		return;
-	}
-	
-	// Set pointers to the input buffer
-	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
-	                        reinterpret_cast<char *>(m_fillingData.get()), 
-	                        reinterpret_cast<char *>(m_fillingData.get()));
-
 	PRINT_DBG(m_debug, "");
 }
 
@@ -54,36 +34,33 @@ Storage_2_buffers::~Storage_2_buffers()
 }
 
 //-------------------------------------------------------------------------------------------------
-Storage_2_buffers::Storage_2_buffers(const Storage_2_buffers & obj)
-	: m_istream(&m_streambuf),
-	  m_dataSize(obj.m_dataSize),
-	  m_fillingIndex(obj.m_fillingIndex),
-	  m_completeSize(obj.m_completeSize),
-	  m_debug(obj.m_debug)
+Storage_2_buffers::Storage_2_buffers(const Storage_2_buffers & obj) : m_istream(&m_streambuf)
 {
 	// Lock a mutex being copied
 	try {
 		std::lock_guard<std::mutex> lock {const_cast<Storage_2_buffers &>(obj).m_mutex};
 	}
-	catch (std::system_error & obj)
+	catch (std::system_error & err)
 	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
 		return;
 	}
+	
+	// Check the new buffer memory
+	if (obj.m_completeData.get() == nullptr || obj.m_fillingData.get() == nullptr)
+	{
+		PRINT_ERR("Bad new buffer memory");
+		return;
+	}
+	
+	// Set buffers parameters
+	*const_cast<uint32_t *>(&m_dataSize) = obj.m_dataSize;
+	m_fillingIndex = obj.m_fillingIndex;
+	m_completeSize = obj.m_completeSize;
+	m_debug = obj.m_debug;
 
-	// Allocate a memory for the data (+ 1 for element for end pointer position of the Streambuf)
-	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
-	if (nullptr == m_completeData.get())
-	{
-		PRINT_ERR("Can not allocate a memory (m_completeData)");
-		return;
-	}
-	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
-	if (nullptr == m_fillingData.get())
-	{
-		PRINT_ERR("Can not allocate a memory (m_fillingData)");
-		return;
-	}
+	// Allocate a memory for the data
+	allocate_(m_dataSize);
 	
 	// Copy data (+ 1 for last element)
 	std::copy(obj.m_completeData.get(), obj.m_completeData.get() + m_dataSize + 1, 
@@ -128,10 +105,21 @@ Storage_2_buffers & Storage_2_buffers::operator=(const Storage_2_buffers & obj)
 		std::lock_guard<std::mutex> lock {m_mutex};
 		std::lock_guard<std::mutex> lock_obj {const_cast<Storage_2_buffers &>(obj).m_mutex};
 	}
-	catch (std::system_error & obj)
+	catch (std::system_error & err)
 	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
-		return *this;
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
+		
+		// Return bad buffer
+		return const_cast<Storage_2_buffers &>(obj);
+	}
+	
+	// Check the new buffer memory
+	if (obj.m_completeData.get() == nullptr || obj.m_fillingData.get() == nullptr)
+	{
+		PRINT_ERR("Bad new buffer memory");
+		
+		// Return bad buffer
+		return const_cast<Storage_2_buffers &>(obj);
 	}
 	
 	// Data sizes are not match
@@ -140,26 +128,12 @@ Storage_2_buffers & Storage_2_buffers::operator=(const Storage_2_buffers & obj)
 		PRINT_DBG(m_debug, "Delete old data and allocate memory for new data");
 		
 		// Delete old buffers
-		delete [] m_completeData.release();
-		delete [] m_fillingData.release();
+		deallocate_();
 		
 		// New data size member
 		*const_cast<uint32_t *>(&m_dataSize) = obj.m_dataSize;
 		
-		// Allocate a memory for the data (+ 1 for element for end pointer position of the 
-		// Streambuf)
-		m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
-		if (nullptr == m_completeData.get())
-		{
-			PRINT_ERR("Can not allocate a memory (m_completeData)");
-			return *this;
-		}
-		m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[m_dataSize + 1]);
-		if (nullptr == m_fillingData.get())
-		{
-			PRINT_ERR("Can not allocate a memory (m_fillingData)");
-			return *this;
-		}
+		allocate_(m_dataSize);
 	}
 	
 	// New buffer parameters
@@ -184,6 +158,58 @@ Storage_2_buffers & Storage_2_buffers::operator=(const Storage_2_buffers & obj)
 }
 
 //-------------------------------------------------------------------------------------------------
+int32_t Storage_2_buffers::allocate(const uint32_t size) noexcept
+{
+	// Lock a mutex
+	try {
+		std::lock_guard<std::mutex> lock {m_mutex};
+	}
+	catch (std::system_error & err)
+	{
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
+		return -1;
+	}
+	
+	// Delete old data
+	deallocate_();
+	
+	// Allocate a memory for the data
+	if (allocate_(size) != 0)
+	{
+		PRINT_ERR("allocate_(size)");
+		return -1;
+	}
+	
+	// Set data size member
+	*const_cast<uint32_t *>(&m_dataSize) = size;
+
+	PRINT_DBG(m_debug, "");
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t Storage_2_buffers::deallocate() noexcept
+{
+	// Lock a mutex
+	try {
+		std::lock_guard<std::mutex> lock {m_mutex};
+	}
+	catch (std::system_error & err)
+	{
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
+		return -1;
+	}
+	
+	// Delete data
+	deallocate_();
+	
+	PRINT_DBG(m_debug, "");
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
 int32_t Storage_2_buffers::setData(Data_set data) noexcept
 {
 	// Check the incoming parameter
@@ -204,9 +230,9 @@ int32_t Storage_2_buffers::setData(Data_set data) noexcept
 	try {
 		std::lock_guard<std::mutex> lock {m_mutex};
 	}
-	catch (std::system_error & obj)
+	catch (std::system_error & err)
 	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
 		return -1;
 	}
 
@@ -253,9 +279,9 @@ int32_t Storage_2_buffers::getData(Data_get & data) noexcept
 	try {
 		std::lock_guard<std::mutex> lock {m_mutex};
 	}
-	catch (std::system_error & obj)
+	catch (std::system_error & err)
 	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
 		return -1;
 	}
 
@@ -277,9 +303,9 @@ int32_t Storage_2_buffers::clearData() noexcept
 	try {
 		std::lock_guard<std::mutex> lock {m_mutex};
 	}
-	catch (std::system_error & obj)
+	catch (std::system_error & err)
 	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
 		return -1;
 	}
 
@@ -311,9 +337,9 @@ int32_t Storage_2_buffers::completeData() noexcept
 	try {
 		std::lock_guard<std::mutex> lock {m_mutex};
 	}
-	catch (std::system_error & obj)
+	catch (std::system_error & err)
 	{
-		PRINT_ERR("Exception from mutex.lock() has been occured: %s", obj.what());
+		PRINT_ERR("Exception from mutex.lock() has been occured: %s", err.what());
 		return -1;
 	}
 
@@ -355,4 +381,40 @@ void Storage_2_buffers::clearIstream() noexcept
 	{
 		PRINT_ERR("istream::clear()");
 	}
+}
+
+//-------------------------------------------------------------------------------------------------
+int32_t Storage_2_buffers::allocate_(const uint32_t size) noexcept
+{
+	// Allocate a memory for the data (+ 1 for element for end pointer position of the Streambuf)
+	m_completeData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[size + 1]);
+	if (nullptr == m_completeData.get())
+	{
+		PRINT_ERR("Can not allocate a memory (m_completeData)");
+		return -1;
+	}
+	m_fillingData = std::unique_ptr<uint8_t []>(new (std::nothrow) uint8_t[size + 1]);
+	if (nullptr == m_fillingData.get())
+	{
+		PRINT_ERR("Can not allocate a memory (m_fillingData)");
+		return -1;
+	}
+	
+	// Set pointers to the input buffer
+	m_streambuf.setPointers(reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()), 
+	                        reinterpret_cast<char *>(m_fillingData.get()));
+	
+	PRINT_DBG(m_debug, "");
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+void Storage_2_buffers::deallocate_() noexcept
+{
+	delete [] m_completeData.release();
+	delete [] m_fillingData.release();
+
+	PRINT_DBG(m_debug, "");
 }

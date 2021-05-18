@@ -5,6 +5,7 @@
 /*
 DESCRITION: class for storing data
 TODO:
+ * m_streambuf.setPointers() does not run when error is occured
  * mutex test
 FIXME:
 DANGER:
@@ -42,7 +43,7 @@ public:
 	typedef  std::pair<const uint8_t *, uint32_t>  Data_get;
 
 	// Constructor
-	explicit Storage_2_buffers(const uint32_t size);
+	explicit Storage_2_buffers();
 	
 	// Destructor
 	virtual ~Storage_2_buffers();
@@ -55,6 +56,12 @@ public:
 	
 	// Override an assignment operator
 	Storage_2_buffers & operator=(const Storage_2_buffers & obj);
+	
+	// Allocates memory for buffers
+	int32_t allocate(const uint32_t size) noexcept;
+	
+	// Deallocates memory for buffers
+	int32_t deallocate() noexcept;
 
 	// Sets data in the storage
 	int32_t setData(Data_set data) noexcept;
@@ -88,6 +95,12 @@ public:
 
 private:
 
+	// Allocates memory for buffers without lock a mutex
+	int32_t allocate_(const uint32_t size) noexcept;
+	
+	// Deallocates memory for buffers without lock a mutex
+	void deallocate_() noexcept;
+
 	// Buffer class
 	class Streambuf : public std::streambuf
 	{
@@ -116,7 +129,7 @@ private:
 	std::unique_ptr<uint8_t []> m_fillingData {nullptr};
 	
 	// Data size
-	const uint32_t m_dataSize;
+	const uint32_t m_dataSize {0};
 
 	// Index in the array of filling data
 	uint32_t m_fillingIndex {0};

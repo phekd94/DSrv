@@ -188,7 +188,8 @@ int32_t Storage_2_buffers_test::move() noexcept
 	Storage_2_buffers::Data_set dataSet(data, 1);
 	Storage_2_buffers::Data_get dataGet;
 
-	Storage_2_buffers obj_1 {maxSize};
+	Storage_2_buffers obj_1;
+	obj_1.allocate(maxSize);
 	
 	// Set data
 	if (obj_1.setData(dataSet) != 0)
@@ -232,7 +233,8 @@ int32_t Storage_2_buffers_test::copy() noexcept
 	Storage_2_buffers::Data_set dataSet(data, 3);
 	Storage_2_buffers::Data_get dataGet;
 
-	Storage_2_buffers obj_1 {maxSize};
+	Storage_2_buffers obj_1;
+	obj_1.allocate(maxSize);
 	
 	// Set data
 	if (obj_1.setData(dataSet) != 0)
@@ -306,8 +308,10 @@ int32_t Storage_2_buffers_test::opEqual() noexcept
 	Storage_2_buffers::Data_set dataSet_2(data_2, 2);
 	Storage_2_buffers::Data_get dataGet;
 
-	Storage_2_buffers obj_1 {3};
-	Storage_2_buffers obj_2 {2};
+	Storage_2_buffers obj_1;
+	obj_1.allocate(3);
+	Storage_2_buffers obj_2;
+	obj_2.allocate(2);
 	
 	// Set data
 	if (obj_1.setData(dataSet_1) != 0)
@@ -396,8 +400,8 @@ int32_t Storage_2_buffers_test::fullTest() noexcept
 {
 	PRINT_DBG(true, "====== fullTest ======");
 
-	Storage_2_buffers obj(maxSize);
-	obj.setDebug(true);
+	Storage_2_buffers obj;
+	obj.allocate(maxSize);
 
 	if (pNull(obj) != 0)
 	{
