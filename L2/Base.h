@@ -44,13 +44,14 @@ public:
 protected:
 
 	// Interface type enumeration
-	enum class InterfaceType
+	const enum class InterfaceType
 	{
-		PACKET, SERIAL
-	};
+		NONE, PACKET, SERIAL
+	} m_interfaceType;
 
 	// Constructor
-	explicit Base(const uint32_t bufferSize) : Storage(bufferSize)
+	explicit Base(const InterfaceType interfaceType = InterfaceType::NONE) 
+		: m_interfaceType(interfaceType)
 	{
 		PRINT_DBG(m_debug, "");
 	}
@@ -65,18 +66,37 @@ protected:
 	Base(const Base &) = default;
 
 	// Move constructor
-	Base(Base && obj) : Storage(std::move(obj)), m_debug(obj.m_debug)
+	Base(Base && obj) 
+		: Storage(std::move(obj)), m_interfaceType(obj.m_interfaceType), m_debug(obj.m_debug)
 	{
 		PRINT_DBG(m_debug, "Move constructor");
 	}
 	
 	// Override an asignment operator
-	Base & operator=(const Base &) = default;
+	Base & operator=(const Base & obj)
+	{
+		if (&obj == this)
+		{
+			PRINT_DBG(m_debug, "Base: Self-assignment");
+			return *this;
+		}
+		
+		// Copy Storage part
+		Storage::operator=(obj);
+	
+		// Copy all fields
+		m_debug = obj.m_debug;
+		*const_cast<InterfaceType *>(&m_interfaceType) = obj.m_interfaceType;
+		
+		PRINT_DBG(m_debug, "Base");
+		
+		return *this;
+	}
 
 	// Enables debug messages
-	void setDebug(const bool d, const bool d_storage) noexcept
+	void setDebug(const bool d_base, const bool d_storage) noexcept
 	{
-		m_debug = d;
+		m_debug = d_base;
 		Storage::setDebug(d_storage);
 	}
 

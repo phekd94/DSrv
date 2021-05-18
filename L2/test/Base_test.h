@@ -21,16 +21,7 @@ namespace DSrv
 // Class for test a Base class (with override methods)
 template <typename Storage>
 class Base_for_test : public Base<Storage>
-{
-
-public:
-
-	explicit Base_for_test(const uint32_t bufferSize) : Base<Storage>(bufferSize)
-	{
-	}
-
-private:
-	
+{	
 	virtual int32_t sendData(const typename Base<Storage>::Data_send) noexcept override final
 	{
 		return 0;
@@ -76,7 +67,8 @@ int32_t Base_test<Storage>::move() noexcept
 {
 	PRINT_DBG(true, "------ move ------");
 
-	Base_for_test<Storage> obj_1 {10};
+	Base_for_test<Storage> obj_1;
+	obj_1.allocate(10);
 
 	// Apply move constructor
 	Base_for_test<Storage> obj_2 {std::move(obj_1)};
@@ -90,7 +82,8 @@ int32_t Base_test<Storage>::copy() noexcept
 {
 	PRINT_DBG(true, "------ copy ------");
 
-	Base_for_test<Storage> obj_1 {10};
+	Base_for_test<Storage> obj_1;
+	obj_1.allocate(10);
 
 	// Apply copy constructor
 	Base_for_test<Storage> obj_2 {obj_1};
@@ -104,8 +97,10 @@ int32_t Base_test<Storage>::opEqual() noexcept
 {
 	PRINT_DBG(true, "------ opEqual ------");
 
-	Base_for_test<Storage> obj_1 {10};
-	Base_for_test<Storage> obj_2 {3};
+	Base_for_test<Storage> obj_1;
+	obj_1.allocate(10);
+	Base_for_test<Storage> obj_2;
+	obj_1.allocate(3);
 
 	// Apply operator=
 	obj_1 = obj_1;

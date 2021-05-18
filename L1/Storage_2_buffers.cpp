@@ -96,7 +96,7 @@ Storage_2_buffers & Storage_2_buffers::operator=(const Storage_2_buffers & obj)
 	// Self-assignment check
 	if (&obj == this)
 	{
-		PRINT_DBG(m_debug, "Self-assignment");
+		PRINT_DBG(m_debug, "Storage_2_buffers: Self-assignment");
 		return *this;
 	}
 	
@@ -152,7 +152,7 @@ Storage_2_buffers & Storage_2_buffers::operator=(const Storage_2_buffers & obj)
 	                        reinterpret_cast<char *>(m_fillingData.get()), 
 	                        reinterpret_cast<char *>(m_fillingData.get() + m_fillingIndex));
 	
-	PRINT_DBG(m_debug, "Assignment operator");
+	PRINT_DBG(m_debug, "Storage_2_buffers");
 
 	return *this;
 }
