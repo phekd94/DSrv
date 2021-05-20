@@ -11,8 +11,8 @@ DANGER:
  * If CRC is needed buffer should be more than size on sizeof(uint32_t) 
 NOTE:
 
-Thread safety: 
-Reentrance: 
+Thread safety: NO
+Reentrance: YES
 */
 
 //-------------------------------------------------------------------------------------------------
