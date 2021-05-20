@@ -67,12 +67,14 @@ protected:
 
 	// Move constructor
 	Base(Base && obj) 
-		: Storage(std::move(obj)), m_interfaceType(obj.m_interfaceType), m_debug(obj.m_debug)
+		: Storage(std::move(obj)), 
+		  m_interfaceType(obj.m_interfaceType), 
+		  m_debug(obj.m_debug)
 	{
 		PRINT_DBG(m_debug, "Move constructor");
 	}
 	
-	// Override an asignment operator
+	// Override an assignment operator
 	Base & operator=(const Base & obj)
 	{
 		if (&obj == this)

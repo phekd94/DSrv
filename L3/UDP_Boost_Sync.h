@@ -6,7 +6,6 @@
 DESCRITION: class implements work with UDP packets by using Boost library
 TODO:
  * Add mutex for m_socket
- * Copy constructor
  * operator=
 FIXME:
 DANGER:
@@ -61,13 +60,13 @@ protected:
 		PRINT_DBG(m_debug, "");
 	}
 	
-	// Copy constructor
-	UDP_Boost_Sync(const UDP_Boost_Sync &) = delete;
+	// Copy constructor; initialization object will not be started; Base<Storage> part is copied
+	UDP_Boost_Sync(const UDP_Boost_Sync &);
 
 	// Move constructor	
 	UDP_Boost_Sync(UDP_Boost_Sync && obj);
 	
-	// Override an asignment operator
+	// Override an assignment operator
 	UDP_Boost_Sync& operator=(const UDP_Boost_Sync &) = delete;
 	
 	// Starts the communication
@@ -123,6 +122,17 @@ private:
 };
 
 //=================================================================================================
+template <typename Storage, template <typename T> class Base>
+UDP_Boost_Sync<Storage, Base>::
+UDP_Boost_Sync(const UDP_Boost_Sync & obj)
+	: Base<Storage>(obj),
+	  m_socket(m_io_context),
+	  m_debug(obj.m_debug)
+{
+	PRINT_DBG(m_debug, "Copy constructor");
+}
+
+//-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
 UDP_Boost_Sync<Storage, Base>::
 UDP_Boost_Sync(UDP_Boost_Sync && obj) 
