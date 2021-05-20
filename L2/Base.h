@@ -77,6 +77,7 @@ protected:
 	// Override an assignment operator
 	Base & operator=(const Base & obj)
 	{
+		// Self-assignment check
 		if (&obj == this)
 		{
 			PRINT_DBG(m_debug, "Base: Self-assignment");

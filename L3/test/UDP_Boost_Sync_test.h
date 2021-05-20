@@ -41,6 +41,9 @@ public:
 	// Tests a copy constructor
 	static int32_t copy() noexcept;
 	
+	// Tests an operator=
+	static int32_t opEqual() noexcept;
+	
 	// Runs all tests
 	static int32_t fullTest() noexcept;
 };
@@ -107,6 +110,26 @@ int32_t UDP_Boost_Sync_test<Storage, Base>::copy() noexcept
 
 //-------------------------------------------------------------------------------------------------
 template <typename Storage, template <typename T> class Base>
+int32_t UDP_Boost_Sync_test<Storage, Base>::opEqual() noexcept
+{
+	PRINT_DBG(true, "------ opEqual ------");
+	
+	UDP_Boost_Sync_for_test<Storage, Base> obj_1;
+	obj_1.allocate(10);
+	obj_1.start(50000);
+	UDP_Boost_Sync_for_test<Storage, Base> obj_2;
+	obj_2.allocate(3);
+	obj_2.start(50001);
+
+	// Apply operator=
+	obj_1 = obj_1;
+	obj_2 = obj_1;
+	
+	return 0;
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename Storage, template <typename T> class Base>
 int32_t UDP_Boost_Sync_test<Storage, Base>::fullTest() noexcept
 {
 	PRINT_DBG(true, "====== fullTest ======");
@@ -120,6 +143,12 @@ int32_t UDP_Boost_Sync_test<Storage, Base>::fullTest() noexcept
 	if (copy() != 0)
 	{
 		PRINT_ERR("move");
+		return -1;
+	}
+	
+	if (opEqual() != 0)
+	{
+		PRINT_ERR("opEqual");
 		return -1;
 	}
 

@@ -100,7 +100,7 @@ int32_t Base_test<Storage>::opEqual() noexcept
 	Base_for_test<Storage> obj_1;
 	obj_1.allocate(10);
 	Base_for_test<Storage> obj_2;
-	obj_1.allocate(3);
+	obj_2.allocate(3);
 
 	// Apply operator=
 	obj_1 = obj_1;

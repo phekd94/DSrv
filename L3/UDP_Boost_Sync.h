@@ -6,7 +6,6 @@
 DESCRITION: class implements work with UDP packets by using Boost library
 TODO:
  * Add mutex for m_socket
- * operator=
 FIXME:
 DANGER:
  * If CRC is needed buffer should be more than size on sizeof(uint32_t) 
@@ -47,7 +46,9 @@ public:
 protected:
 
 	// Constructor
-	UDP_Boost_Sync() : Base<Storage>(Base<Storage>::InterfaceType::PACKET), m_socket(m_io_context)
+	UDP_Boost_Sync() 
+		: Base<Storage>(Base<Storage>::InterfaceType::PACKET), 
+		  m_socket(m_io_context)
 	{
 		PRINT_DBG(m_debug, "");
 	}
@@ -61,13 +62,13 @@ protected:
 	}
 	
 	// Copy constructor; initialization object will not be started; Base<Storage> part is copied
-	UDP_Boost_Sync(const UDP_Boost_Sync &);
+	UDP_Boost_Sync(const UDP_Boost_Sync & obj);
 
 	// Move constructor	
 	UDP_Boost_Sync(UDP_Boost_Sync && obj);
 	
-	// Override an assignment operator
-	UDP_Boost_Sync& operator=(const UDP_Boost_Sync &) = delete;
+	// Override an assignment operator; object will not be started; Base<Storage> part is copied
+	UDP_Boost_Sync & operator=(const UDP_Boost_Sync & obj);
 	
 	// Starts the communication
 	int32_t start(const uint16_t port);
@@ -163,6 +164,29 @@ UDP_Boost_Sync(UDP_Boost_Sync && obj)
 	}
 	
 	PRINT_DBG(m_debug, "Move constructor");
+}
+
+//-------------------------------------------------------------------------------------------------
+template <typename Storage, template <typename T> class Base>
+UDP_Boost_Sync<Storage, Base> & UDP_Boost_Sync<Storage, Base>::
+operator=(const UDP_Boost_Sync & obj)
+{
+	// Self-assignment check
+	if (&obj == this)
+	{
+		PRINT_DBG(m_debug, "UDP_Boost_Sync: Self-assignment");
+		return *this;
+	}
+	
+	// Copy Base<Storage> part
+	Base<Storage>::operator=(obj);
+	
+	// Copy field
+	m_debug = obj.m_debug;
+	
+	PRINT_DBG(m_debug, "UDP_Boost_Sync");
+	
+	return *this;
 }
 
 //-------------------------------------------------------------------------------------------------
