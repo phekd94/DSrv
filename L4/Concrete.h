@@ -53,6 +53,8 @@ public:
 	// Flag for stop the loop
 	volatile bool m_stopLoop {false};
 	
+	KaitaiParser * getParser() const { return m_kaitaiParser.get(); }
+	
 private:
 
 	// Parser of the accepted data (override method)
@@ -84,7 +86,7 @@ loop(std::chrono::milliseconds period) noexcept
 	while (false == m_stopLoop)
 	{
 		// Send to itself
-		uint8_t data[] {1, i++, 'H', 'W', '\0'};
+		uint8_t data[] {1, i++}; // , 'H', 'W', '\0'};
 		if (Interface<Storage, Base>::sendData(
 		         typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), 
 		         "0.0.0.0", 50000) != 0)
@@ -127,32 +129,65 @@ dataParser(typename Base<Storage>::Data_parser data) noexcept
 	//	                static_cast<unsigned int>(i),
 	//	                static_cast<unsigned int>(data.first[i]));
 	
-	// TODO:
-	/*if (... == Interface::type)
+	// Apply parser lambda function
+	auto applyParser = [this](const uint8_t * const data, const uint32_t size)->int32_t
 	{
+		// Set data to buffer
+		if (Storage::setData(typename Storage::Data_set(data, size)) != 0)
+		{
+			PRINT_ERR("setData()");
+			return -1;
+		}
+	
+		try
+		{
+			// Apply parser
+			delete m_kaitaiParser.release();
+			m_kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&m_kaitaiStream));
+		} catch (std::exception & ex)
+		{
+			PRINT_ERR("KaitaiParser or new: %s", ex.what());
+			Storage::clearIstream();
+			return 1;
+		}
+		
+		return 0;
+	};
+	
+	// Check an interface type
+	if (   Interface<Storage, Base>::InterfaceType::PACKET
+	    == Interface<Storage, Base>::m_interfaceType)
+	{
+		PRINT_DBG(true, "Parse the PACKET data");
+		if (applyParser(data.first, data.second) < 0)
+		{
+			PRINT_ERR("applyParser()");
+			return -1;
+		}
+	}
+	else if (   Interface<Storage, Base>::InterfaceType::SERIAL
+	         == Interface<Storage, Base>::m_interfaceType)
+	{
+		for (uint32_t i = 0; i < data.second; ++i)
+		{
+			PRINT_DBG(true, "Parse the SERIAL data; shift = %u", static_cast<unsigned int>(i));
+			int32_t ret {applyParser(data.first + i, 1)};
+			if (ret < 0)
+			{
+				PRINT_ERR("applyParser()");
+				return -1;
+			}
+			else if (ret == 0)
+			{
+				// The rest of the data is lost !!!
+				break;
+			}
+		}
 	}
 	else
 	{
-	}*/
-
-	// Set data to buffer
-	if (Storage::setData(typename Storage::Data_set(data.first, data.second)) != 0)
-	{
-		PRINT_ERR("setData()");
+		PRINT_ERR("Unknown interface type");
 		return -1;
-	}
-	
-	try
-	{
-		// Apply parser
-		delete m_kaitaiParser.release();
-		m_kaitaiParser = std::unique_ptr<KaitaiParser>(new KaitaiParser(&m_kaitaiStream));
-	} catch (std::exception & ex)
-	{
-		PRINT_ERR("KaitaiParser or new: %s", ex.what());
-		Storage::clearIstream();
-		Storage::clearData();
-		return 1;
 	}
 	
 	// Complete data
@@ -171,28 +206,4 @@ dataParser(typename Base<Storage>::Data_parser data) noexcept
 
 //-------------------------------------------------------------------------------------------------
 } // namespace DSrv
-
-/*
-template <typename Storage, 
-          template <typename T> class Base,
-          template <typename T_1, template <typename Y> class T_2> class Interface, // interface member constexpr
-          typename KaitaiParser>
-class Concrete : public Interface<Storage, Base>
-{
-
-public:
-	
-	KaitaiParser * kp;
-	
-	if_constexpr (Interface::type)
-	{
-	}
-	else
-	{
-	}
-
-}
-
-// using: Concrete<...>.kp->id or data
-*/
 
