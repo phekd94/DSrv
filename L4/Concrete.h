@@ -38,6 +38,12 @@ public:
 	// Constructor
 	Concrete() : m_kaitaiStream(Storage::getIstreamPointer())
 	{
+		if (Storage::allocate(50) != 0)
+		{
+			PRINT_ERR("Storage::allocate(50)");
+			return;
+		}
+	
 		PRINT_DBG(true, "");
 	}
 	
@@ -50,10 +56,14 @@ public:
 	// Loop for the server
 	void loop(std::chrono::milliseconds period) noexcept;
 	
+	// Gets a pointer to kaitai parser object
+	KaitaiParser * getParser() const
+	{ 
+		return m_kaitaiParser.get();
+	}
+	
 	// Flag for stop the loop
 	volatile bool m_stopLoop {false};
-	
-	KaitaiParser * getParser() const { return m_kaitaiParser.get(); }
 	
 private:
 
@@ -74,19 +84,14 @@ template <typename Storage,
 void Concrete<Storage, Base, Interface, KaitaiParser>::
 loop(std::chrono::milliseconds period) noexcept
 {
-	// Allocate
-	Storage::allocate(50);
-	
-	// Start
-	Interface<Storage, Base>::start(50000);
-	
-	// Loop
 	uint8_t i {0};
+	
 	PRINT_DBG(true, "Loop start");
+	
 	while (false == m_stopLoop)
 	{
 		// Send to itself
-		uint8_t data[] {1, i++}; // , 'H', 'W', '\0'};
+		uint8_t data[] {1, i++};
 		if (Interface<Storage, Base>::sendData(
 		         typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), 
 		         "0.0.0.0", 50000) != 0)
