@@ -40,7 +40,7 @@ class UDP_Boost_Sync : public Base<Storage>
 public:
 	
 	// Maximal lenght of UDP packet
-	constexpr static const uint32_t UDP_max_lenght {1500};
+	constexpr static const uint32_t UDP_MAX_LENGTH {1500};
 	
 	// Starts the communication
 	int32_t start(const uint16_t port);
@@ -111,7 +111,7 @@ private:
 	boost::crc_32_type m_crc;
 	
 	// Buffer size
-	constexpr static const uint32_t m_bufferSize {UDP_max_lenght};
+	constexpr static const uint32_t m_bufferSize {UDP_MAX_LENGTH};
 	
 	// Buffer for receive data
 	uint8_t m_bufferReceive[m_bufferSize];	

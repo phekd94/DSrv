@@ -76,6 +76,7 @@ private:
 	// Kaitai parser
 	std::unique_ptr<KaitaiParser> m_kaitaiParser {nullptr};
 };
+
 //=================================================================================================
 template <typename Storage, 
           template <typename T> class Base, 
@@ -92,9 +93,15 @@ loop(std::chrono::milliseconds period) noexcept
 	{
 		// Send to itself
 		uint8_t data[] {1, i++};
-		if (Interface<Storage, Base>::sendData(
+		/*if (Interface<Storage, Base>::sendData(
 		         typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t)), 
 		         "0.0.0.0", 50000) != 0)
+		{
+			PRINT_ERR("sendData()");
+			break;
+		}*/
+		if (Interface<Storage, Base>::sendData(
+		         typename Base<Storage>::Data_send(data, sizeof(data) / sizeof(uint8_t))) != 0)
 		{
 			PRINT_ERR("sendData()");
 			break;
