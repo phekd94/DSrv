@@ -82,9 +82,9 @@ protected:
 	virtual int32_t receiveData() noexcept override final;
 	
 	// Enables debug messages
-	void setDebug(const bool d_usart, const bool d_base, const bool d_storage) noexcept
+	void setDebug(const bool d_interface, const bool d_base, const bool d_storage) noexcept
 	{
-		m_debug = d_usart;
+		m_debug = d_interface;
 		Base<Storage>::setDebug(d_base, d_storage);
 	}
 	

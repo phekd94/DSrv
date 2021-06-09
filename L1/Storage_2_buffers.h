@@ -43,7 +43,7 @@ public:
 	typedef  std::pair<const uint8_t *, uint32_t>  Data_get;
 
 	// Constructor
-	explicit Storage_2_buffers();
+	Storage_2_buffers();
 	
 	// Destructor
 	virtual ~Storage_2_buffers();

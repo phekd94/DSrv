@@ -84,9 +84,9 @@ protected:
 	virtual int32_t receiveData() noexcept override final;
 	
 	// Enables debug messages
-	void setDebug(const bool d_usart, const bool d_base, const bool d_storage) noexcept
+	void setDebug(const bool d_interface, const bool d_base, const bool d_storage) noexcept
 	{
-		m_debug = d_usart;
+		m_debug = d_interface;
 		Base<Storage>::setDebug(d_base, d_storage);
 	}
 
@@ -199,37 +199,38 @@ UDP_Boost_Sync(UDP_Boost_Sync && obj)
 	  m_endpointSend(obj.m_endpointSend),
 	  m_debug(obj.m_debug)
 {
-	// Lock a mutex
 	try {
+		// Lock a mutex
 		std::lock_guard<std::mutex> lock {m_mutex};
+	
+		// Error code for Boost library
+		boost::system::error_code ec;
+	
+		// Get a local address and port
+		const boost::asio::ip::udp::endpoint ep {obj.m_socket.local_endpoint(ec)};
+
+		// Start new interface object
+		if (obj.m_socket.is_open() == true)
+		{
+			PRINT_DBG(m_debug, "Move constructor: Stop a socket being moved");
+		
+			// Stop old interface object
+			obj.stop();
+		
+			if (!ec)
+			{
+				start(ep.port());
+			}
+		}
+	
+		PRINT_DBG(m_debug, "Move constructor");
 	}
 	catch (std::system_error & err)
 	{
-		PRINT_ERR("Move: Exception from mutex.lock() has been occured: %s", err.what());
+		PRINT_ERR("Move constructor: Exception from mutex.lock() has been occured: %s", 
+		          err.what());
 		return;
 	}
-	
-	// Error code for Boost library
-	boost::system::error_code ec;
-	
-	// Get a local address and port
-	const boost::asio::ip::udp::endpoint ep {obj.m_socket.local_endpoint(ec)};
-
-	// Start new interface object
-	if (obj.m_socket.is_open() == true)
-	{
-		PRINT_DBG(m_debug, "Move: Stop a socket being moved");
-		
-		// Stop old interface object
-		obj.stop();
-		
-		if (!ec)
-		{
-			start(ep.port());
-		}
-	}
-	
-	PRINT_DBG(m_debug, "Move constructor");
 }
 
 //-------------------------------------------------------------------------------------------------

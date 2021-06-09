@@ -79,7 +79,7 @@ void DSrv::printDebug(const char* func,
 	catch (std::exception& obj)
 	{
 		std::cout << func << "(): " << __FUNCTION__ << "(): "
-		          << "Exception from mutex.lock() or from Qt functions has been occured: "
+		          << "Exception from mutex.lock() has been occured: "
 		          << obj.what() << std::endl;
 	}
 }
