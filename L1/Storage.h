@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -8,14 +9,16 @@
 
 namespace DSrv {
 
+// TODO noexcept
+
 class Storage {
 	public:
-		typedef std::pair<std::unique_ptr<uint8_t[]>, size_t> data_type;
+		typedef std::pair<std::unique_ptr<std::byte[]>, size_t> data_type;
 		typedef std::queue<data_type> container_type;
-		typedef container_type::size_type queue_size_type;
+		typedef container_type::size_type container_size_type;
 
 		Storage(size_t data_size);
-		void set_data(const uint8_t* data, const size_t size);
+		void set_data(const std:byte* data, const size_t size);
 		void complete_data();
 		data_type data();
 		queue_size_type queue_size() const noexcept { return m_data.size(); }
