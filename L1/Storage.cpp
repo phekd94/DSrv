@@ -22,7 +22,7 @@ void Storage::complete_data() {
 	new_filling_data();
 }
 
-Storage::data_type Storage::data() {
+Storage::data_type Storage::get_data() {
 	std::lock_guard<decltype(m_mutex)> lock { m_mutex };
 	if (!queue_size())
 		throw std::runtime_error("Container with data is empty");

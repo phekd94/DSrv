@@ -18,7 +18,7 @@ class Storage {
 		Storage(const size_t data_size);
 		void set_data(const std::span<std::byte>& data);
 		void complete_data();
-		data_type data();
+		data_type get_data();
 		container_size_type queue_size() const noexcept { return m_data.size(); }
 	private:
 		container_type m_data;

@@ -1,125 +1,28 @@
-
 #pragma once
 
-//-------------------------------------------------------------------------------------------------
-/*
-DESCRITION: pure virtual template class for interface and concrete classes
-TODO:
-FIXME:
-DANGER:
-NOTE:
+namespace DSrv {
 
-Thread safety: YES
-Reentrance: YES
-*/
-
-//-------------------------------------------------------------------------------------------------
-#include <cstdint>  // integer types
-#include <utility>  // std::pair; std::move
-
-#include "DSrv/other/printDebug.h"  // PRINT_DBG, PRINT_ERR
-
-//-------------------------------------------------------------------------------------------------
-namespace DSrv
-{
-
-//-------------------------------------------------------------------------------------------------
-// Test class definition
-template <typename Storage> class Base_test;
-
-//-------------------------------------------------------------------------------------------------
 template <typename Storage>
-class Base : protected Storage
-{
-	friend class Base_test<Storage>;
+class Base : protected Storage {
+	protected:
+		const enum class InterfaceType {
+			NONE, PACKET, SERIAL
+		} m_interface_type;
 
-public:
+		explicit Base(const InterfaceType interface_type = InterfaceType::NONE) : m_interface_type(interface_type) { }
+		virtual ~Base() = default;
+		Base(const Base&) = delete;
+		Base& operator=(const Base&) = delete;
 
-	// Data type for send data method (pointer + size)
-	typedef  std::pair<const uint8_t *, uint32_t>  Data_send;
+		// Interface class should realize this function
+		template <typename...Args>
+		virtual void connect(Args...args) = 0;
+		virtual void disconnect() = 0;
+		virtual void send_data(const std::span<std::byte>& data) = 0;
+		virtual void receive_data() = 0;
 
-	// Data type for data parser method (pointer + size)
-	typedef  Data_send  Data_parser;
-
-protected:
-
-	// Interface type enumeration
-	const enum class InterfaceType
-	{
-		NONE, PACKET, SERIAL
-	} m_interfaceType;
-
-	// Constructor
-	explicit Base(const InterfaceType interfaceType = InterfaceType::NONE) 
-		: m_interfaceType(interfaceType)
-	{
-		PRINT_DBG(m_debug, "");
-	}
-
-	// Destructor
-	virtual ~Base()
-	{
-		PRINT_DBG(m_debug, "");
-	}
-	
-	// Copy constructor
-	Base(const Base &) = default;
-
-	// Move constructor
-	Base(Base && obj) 
-		: Storage(std::move(obj)), 
-		  m_interfaceType(obj.m_interfaceType), 
-		  m_debug(obj.m_debug)
-	{
-		PRINT_DBG(m_debug, "Move constructor");
-	}
-	
-	// Override an assignment operator
-	Base & operator=(const Base & obj)
-	{
-		// Self-assignment check
-		if (&obj == this)
-		{
-			PRINT_DBG(m_debug, "Base: Self-assignment");
-			return *this;
-		}
-		
-		// Copy Storage part
-		Storage::operator=(obj);
-	
-		// Copy all fields
-		m_debug = obj.m_debug;
-		*const_cast<InterfaceType *>(&m_interfaceType) = obj.m_interfaceType;
-		
-		PRINT_DBG(m_debug, "Base");
-		
-		return *this;
-	}
-
-	// Enables debug messages
-	void setDebug(const bool d_base, const bool d_storage) noexcept
-	{
-		m_debug = d_base;
-		Storage::setDebug(d_storage);
-	}
-
-	// Sends data (pure virtual function)
-	// (protocol class should realize this function)
-	virtual int32_t sendData(const Data_send data) noexcept = 0;
-	
-	// Receives data (pure virtual function)
-	// (protocol class should realize this function)
-	virtual int32_t receiveData() noexcept = 0;
-
-	// Parser of the accepted data (pure virtual function)
-	// (concrete class should realize this function)
-	virtual int32_t dataParser(Data_parser data) noexcept = 0;
-
-private:
-
-	// Enable debug messages
-	bool m_debug {true};
+		// Parser class should realize this function
+		virtual void data_parser(const std::span<std::byte>& data) = 0;
 };
 
-//-------------------------------------------------------------------------------------------------
 } // namespace DSrv
