@@ -1,14 +1,14 @@
-#include "Storage.h"
+#include "storage.h"
 
 #include <algorithm>
 
 using namespace DSrv;
 
-Storage::Storage(const size_t data_size) : m_data_size(data_size) {
+Storage::Storage(const size_t max_data_size) : m_data_size(max_data_size) {
 	new_filling_data();
 }
 
-void Storage::set_data(const std::span<std::byte>& data) {
+void Storage::set_data(const external_data_type& data) {
 	std::lock_guard<decltype(m_mutex)> lock { m_mutex };
 	if (m_filling_data.second + data.size() > m_data_size)
 		throw std::runtime_error("Data size and data is too much");
@@ -22,11 +22,11 @@ void Storage::complete_data() {
 	new_filling_data();
 }
 
-Storage::data_type Storage::get_data() {
+Storage::internal_data_type Storage::get_data() {
 	std::lock_guard<decltype(m_mutex)> lock { m_mutex };
 	if (!queue_size())
 		throw std::runtime_error("Container with data is empty");
-	data_type data = std::move(m_data.front());
+	internal_data_type data = std::move(m_data.front());
 	m_data.pop();
 	return data;
 }
